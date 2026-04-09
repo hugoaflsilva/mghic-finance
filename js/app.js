@@ -21,7 +21,7 @@ const App = {
     unlock() {
         document.getElementById('lockScreen').classList.remove('active');
         document.getElementById('appContainer').classList.remove('hidden');
-        this.refreshDashboard();
+        this.navigate('dashboard');
     },
 
     // Navigation
@@ -29,10 +29,23 @@ const App = {
         // Hide all pages
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
-        // Show target page
-        const targetPage = document.getElementById(`page${page.charAt(0).toUpperCase() + page.slice(1)}`);
+        // Map page names to actual HTML element IDs
+        const pageMap = {
+            'dashboard': 'dashboardPage',
+            'transactions': 'transactionsPage',
+            'savings': 'savingsPage',
+            'categories': 'categoriesPage',
+            'reports': 'reportsPage',
+            'settings': 'pageSettings'
+        };
+
+        const targetId = pageMap[page];
+        const targetPage = document.getElementById(targetId);
+        
         if (targetPage) {
             targetPage.classList.add('active');
+        } else {
+            console.warn('Page not found:', page, '→', targetId);
         }
 
         // Update nav
@@ -71,45 +84,28 @@ const App = {
 
     // Show Add Transaction Modal
     showAddTransaction(type = 'expense') {
-        document.getElementById('formTransaction').reset();
-        document.getElementById('txId').value = '';
-        document.getElementById('txType').value = type;
-        document.getElementById('modalTransactionTitle').textContent = 'Add Transaction';
-        document.getElementById('invoicePreview').classList.add('hidden');
-        document.getElementById('invoicePreview').innerHTML = '';
-
-        // Set default date
-        this.setDefaultDate();
-
-        // Set active type button
-        document.querySelectorAll('#modalTransaction .type-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.type === type);
-        });
-
-        // Toggle savings goal group
-        document.getElementById('savingsGoalGroup').style.display = type === 'savings' ? 'block' : 'none';
-        document.getElementById('invoiceGroup').style.display = type === 'savings' ? 'none' : 'block';
-
-        // Load categories for selected type
         if (typeof Transactions !== 'undefined') {
-            Transactions.loadCategoryOptions(type === 'savings' ? 'savings' : type);
+            Transactions.showAdd(type);
         }
-        if (typeof Savings !== 'undefined' && type === 'savings') {
-            Savings.loadGoalOptions();
-        }
-
-        this.openModal('modalTransaction');
     },
 
     // Modal management
     openModal(modalId) {
-        document.getElementById(modalId).classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
     },
 
     closeModal(modalId) {
-        document.getElementById(modalId).classList.add('hidden');
-        document.body.style.overflow = '';
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
     },
 
     // Greeting based on time of day
@@ -146,37 +142,22 @@ const App = {
         actionBtn.onclick = async () => {
             await DB.clearAll();
             this.closeModal('modalConfirm');
-            this.refreshDashboard();
-            this.showToast('All data erased');
+            this.navigate('dashboard');
+            this.showToast('All data erased 🗑️');
         };
 
         this.openModal('modalConfirm');
     },
 
-    // Simple toast notification
-    showToast(message, duration = 2500) {
+    // Toast notification
+    showToast(message, type = 'success', duration = 2500) {
         // Remove existing toast
         const existing = document.querySelector('.toast');
         if (existing) existing.remove();
 
         const toast = document.createElement('div');
-        toast.className = 'toast';
+        toast.className = `toast ${type}`;
         toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            top: calc(60px + env(safe-area-inset-top, 20px));
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            z-index: 9999;
-            animation: fadeInUp 0.3s ease;
-            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
-        `;
         document.body.appendChild(toast);
 
         setTimeout(() => {
