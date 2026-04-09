@@ -1,8 +1,211 @@
+// ============================================
+// SAVINGS MODULE (Basic - Phase 2)
+// ============================================
+
 const Savings = {
-    async load() {},
-    showAddGoal() { App.openModal('modalSavingsGoal'); },
-    saveGoal(event) { event.preventDefault(); },
-    setIcon(icon, btn) {},
-    setColor(color, btn) {},
-    async loadGoalOptions() {}
+    selectedIcon: '🎯',
+    selectedColor: '#6C2DC7',
+    editingId: null,
+
+    async load() {
+        const goals = await DB.getAll('savingsGoals');
+        const transactions = await DB.getAll('transactions');
+        
+        const list = document.getElementById('savingsList');
+        if (!list) return;
+
+        if (goals.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-state-icon">🎯</span>
+                    <p>No savings goals yet</p>
+                    <button class="btn btn-primary" onclick="Savings.showAddGoal()">
+                        Create a Goal
+                    </button>
+                </div>`;
+            return;
+        }
+
+        // Calculate saved amount for each goal
+        list.innerHTML = goals.map(goal => {
+            const saved = transactions
+                .filter(t => t.type === 'savings' && t.savingsGoalId === goal.id)
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const percentage = goal.targetAmount > 0 
+                ? Math.min((saved / goal.targetAmount) * 100, 100) 
+                : 0;
+
+            return `
+                <div class="savings-card" onclick="Savings.showEditGoal(${goal.id})">
+                    <div class="savings-header">
+                        <div class="savings-icon" style="background: ${goal.color}20; color: ${goal.color}">
+                            ${goal.icon}
+                        </div>
+                        <div class="savings-info">
+                            <span class="savings-name">${goal.name}</span>
+                            <span class="savings-target">Target: ${DB.formatCurrency(goal.targetAmount)}</span>
+                        </div>
+                        <div class="savings-amount">
+                            <span class="savings-saved">${DB.formatCurrency(saved)}</span>
+                        </div>
+                    </div>
+                    <div class="savings-progress">
+                        <div class="savings-progress-bar">
+                            <div class="savings-progress-fill" style="width: ${percentage}%; background: ${goal.color}"></div>
+                        </div>
+                        <span class="savings-percentage">${percentage.toFixed(1)}%</span>
+                    </div>
+                    ${goal.deadline ? `<span class="savings-deadline">Deadline: ${new Date(goal.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>` : ''}
+                </div>
+            `;
+        }).join('');
+    },
+
+    showAddGoal() {
+        this.editingId = null;
+        this.selectedIcon = '🎯';
+        this.selectedColor = '#6C2DC7';
+
+        document.getElementById('modalSavingsTitle').textContent = 'New Savings Goal';
+        document.getElementById('goalName').value = '';
+        document.getElementById('goalAmount').value = '';
+        document.getElementById('goalDeadline').value = '';
+        document.getElementById('deleteGoalBtn').style.display = 'none';
+
+        this.renderIconPicker();
+        this.renderColorPicker();
+        App.openModal('modalSavingsGoal');
+    },
+
+    async showEditGoal(id) {
+        const goal = await DB.get('savingsGoals', id);
+        if (!goal) return;
+
+        this.editingId = id;
+        this.selectedIcon = goal.icon;
+        this.selectedColor = goal.color;
+
+        document.getElementById('modalSavingsTitle').textContent = 'Edit Goal';
+        document.getElementById('goalName').value = goal.name;
+        document.getElementById('goalAmount').value = goal.targetAmount;
+        document.getElementById('goalDeadline').value = goal.deadline || '';
+        document.getElementById('deleteGoalBtn').style.display = 'block';
+
+        this.renderIconPicker();
+        this.renderColorPicker();
+        App.openModal('modalSavingsGoal');
+    },
+
+    renderIconPicker() {
+        const icons = ['🎯','🏠','✈️','🚗','💍','🎓','💻','📱','🏖️','💊','👶','🎮','📷','🏋️','🎵'];
+        const container = document.getElementById('goalIconPicker');
+        if (!container) return;
+
+        container.innerHTML = icons.map(icon => `
+            <button type="button" class="icon-option ${icon === this.selectedIcon ? 'selected' : ''}"
+                    onclick="Savings.setIcon('${icon}', this)">
+                ${icon}
+            </button>
+        `).join('');
+    },
+
+    renderColorPicker() {
+        const colors = [
+            '#6C2DC7','#2ECC71','#3498DB','#9B59B6','#F39C12',
+            '#E74C3C','#1ABC9C','#E67E22','#FF6B9D','#8E44AD'
+        ];
+        const container = document.getElementById('goalColorPicker');
+        if (!container) return;
+
+        container.innerHTML = colors.map(color => `
+            <button type="button" class="color-option ${color === this.selectedColor ? 'selected' : ''}"
+                    style="background: ${color}"
+                    onclick="Savings.setColor('${color}', this)">
+                ${color === this.selectedColor ? '✓' : ''}
+            </button>
+        `).join('');
+    },
+
+    setIcon(icon, btn) {
+        this.selectedIcon = icon;
+        document.querySelectorAll('#goalIconPicker .icon-option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    },
+
+    setColor(color, btn) {
+        this.selectedColor = color;
+        document.querySelectorAll('#goalColorPicker .color-option').forEach(b => {
+            b.classList.remove('selected');
+            b.textContent = '';
+        });
+        btn.classList.add('selected');
+        btn.textContent = '✓';
+    },
+
+    async saveGoal(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('goalName').value.trim();
+        const targetAmount = parseFloat(document.getElementById('goalAmount').value);
+        const deadline = document.getElementById('goalDeadline').value || null;
+
+        if (!name) {
+            App.showToast('Please enter a goal name', 'error');
+            return;
+        }
+        if (!targetAmount || targetAmount <= 0) {
+            App.showToast('Please enter a valid target amount', 'error');
+            return;
+        }
+
+        const data = {
+            name,
+            targetAmount,
+            deadline,
+            icon: this.selectedIcon,
+            color: this.selectedColor,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            if (this.editingId) {
+                await DB.update('savingsGoals', { ...data, id: this.editingId });
+                App.showToast('Goal updated! ✅');
+            } else {
+                await DB.add('savingsGoals', data);
+                App.showToast('Goal created! 🎯');
+            }
+
+            App.closeModal('modalSavingsGoal');
+            this.load();
+        } catch (error) {
+            App.showToast('Error saving goal', 'error');
+            console.error(error);
+        }
+    },
+
+    async deleteGoal() {
+        if (!this.editingId) return;
+        if (!confirm('Delete this savings goal? Savings transactions linked to it will be kept.')) return;
+
+        try {
+            await DB.delete('savingsGoals', this.editingId);
+            App.showToast('Goal deleted 🗑️');
+            App.closeModal('modalSavingsGoal');
+            this.load();
+        } catch (error) {
+            App.showToast('Error deleting goal', 'error');
+            console.error(error);
+        }
+    },
+
+    async loadGoalOptions() {
+        const goals = await DB.getAll('savingsGoals');
+        const select = document.getElementById('txSavingsGoal');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Select goal...</option>' +
+            goals.map(g => `<option value="${g.id}">${g.icon} ${g.name}</option>`).join('');
+    }
 };

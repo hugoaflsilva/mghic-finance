@@ -54,152 +54,101 @@
         <main id="pageContainer" class="page-container">
 
             <!-- ==================== DASHBOARD ==================== -->
-            <section id="pageDashboard" class="page active">
-                
-                <!-- Balance Overview Cards -->
-                <div class="balance-cards">
-                    <div class="balance-card balance-main">
-                        <span class="balance-label">Available Balance</span>
-                        <span class="balance-amount" id="dashAvailableBalance">€0.00</span>
-                    </div>
-                    <div class="balance-grid">
-                        <div class="balance-card balance-income">
-                            <span class="balance-icon">📈</span>
-                            <span class="balance-label">Income</span>
-                            <span class="balance-amount" id="dashTotalIncome">€0.00</span>
-                        </div>
-                        <div class="balance-card balance-expense">
-                            <span class="balance-icon">📉</span>
-                            <span class="balance-label">Expenses</span>
-                            <span class="balance-amount" id="dashTotalExpenses">€0.00</span>
-                        </div>
-                        <div class="balance-card balance-savings">
-                            <span class="balance-icon">🏦</span>
-                            <span class="balance-label">Savings</span>
-                            <span class="balance-amount" id="dashTotalSavings">€0.00</span>
-                        </div>
-                    </div>
-                </div>
+            <div id="dashboardPage" class="page active">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <button class="btn-icon" onclick="App.navigate('settings')">⚙️</button>
+    </div>
 
-                <!-- Monthly Chart -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Monthly Overview</h3>
-                        <span class="card-period" id="dashMonth">December 2024</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
-                </div>
+    <div class="dashboard-month" id="dashMonth">December 2024</div>
 
-                <!-- Savings Goals Preview -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>🏦 Savings Goals</h3>
-                        <button class="link-btn" onclick="App.navigate('savings')">View All →</button>
-                    </div>
-                    <div id="dashSavingsGoals" class="savings-preview">
-                        <div class="empty-state">
-                            <span>No savings goals yet</span>
-                            <button class="btn-small" onclick="App.navigate('savings')">Create First Goal</button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Balance Cards -->
+    <div class="balance-card main-balance">
+        <span class="balance-label">Available Balance</span>
+        <span class="balance-amount" id="dashAvailableBalance">€0.00</span>
+    </div>
 
-                <!-- Recent Transactions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Transactions</h3>
-                        <button class="link-btn" onclick="App.navigate('transactions')">View All →</button>
-                    </div>
-                    <div id="dashRecentTransactions" class="transaction-list">
-                        <div class="empty-state">
-                            <span>No transactions yet</span>
-                            <button class="btn-small" onclick="App.showAddTransaction()">Add First Transaction</button>
-                        </div>
-                    </div>
-                </div>
+    <div class="balance-cards-row">
+        <div class="balance-card income">
+            <span class="balance-label">Income</span>
+            <span class="balance-amount" id="dashTotalIncome">€0.00</span>
+        </div>
+        <div class="balance-card expense">
+            <span class="balance-label">Expenses</span>
+            <span class="balance-amount" id="dashTotalExpenses">€0.00</span>
+        </div>
+        <div class="balance-card savings">
+            <span class="balance-label">Savings</span>
+            <span class="balance-amount" id="dashTotalSavings">€0.00</span>
+        </div>
+    </div>
 
-            </section>
+    <!-- Expense Breakdown -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <span class="section-title">Expense Breakdown</span>
+            <span class="section-link" onclick="App.navigate('categories')">See All</span>
+        </div>
+        <div id="expenseBreakdown"></div>
+    </div>
 
+    <!-- Recent Transactions -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <span class="section-title">Recent Transactions</span>
+            <span class="section-link" onclick="App.navigate('transactions')">See All</span>
+        </div>
+        <div id="recentTransactions"></div>
+    </div>
+</div>
             <!-- ==================== TRANSACTIONS ==================== -->
-            <section id="pageTransactions" class="page">
-                <div class="page-header">
-                    <h2>Transactions</h2>
-                    <div class="filter-tabs">
-                        <button class="tab active" data-filter="all" onclick="Transactions.filter('all', this)">All</button>
-                        <button class="tab" data-filter="income" onclick="Transactions.filter('income', this)">Income</button>
-                        <button class="tab" data-filter="expense" onclick="Transactions.filter('expense', this)">Expenses</button>
-                    </div>
-                </div>
-                <div id="transactionsList" class="transaction-list">
-                    <div class="empty-state">
-                        <span>No transactions yet</span>
-                    </div>
-                </div>
-            </section>
+            <div id="transactionsPage" class="page">
+    <div class="page-header">
+        <h1>Transactions</h1>
+    </div>
+
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="Transactions.filter('all', this)">All</button>
+        <button class="filter-btn" onclick="Transactions.filter('income', this)">Income</button>
+        <button class="filter-btn" onclick="Transactions.filter('expense', this)">Expenses</button>
+    </div>
+
+    <div id="transactionsList"></div>
+</div>
 
             <!-- ==================== SAVINGS ==================== -->
-            <section id="pageSavings" class="page">
-                <div class="page-header">
-                    <h2>🏦 Savings</h2>
-                    <button class="btn-small" onclick="Savings.showAddGoal()">+ New Goal</button>
-                </div>
-                <div class="savings-summary-card">
-                    <span class="balance-label">Total Savings</span>
-                    <span class="balance-amount" id="savingsTotalAmount">€0.00</span>
-                </div>
-                <div id="savingsGoalsList" class="savings-goals-list">
-                    <div class="empty-state">
-                        <span>No savings goals yet</span>
-                        <button class="btn-small" onclick="Savings.showAddGoal()">Create First Goal</button>
-                    </div>
-                </div>
-            </section>
+            <div id="savingsPage" class="page">
+    <div class="page-header">
+        <h1>Savings Goals</h1>
+        <button class="btn-icon" onclick="Savings.showAddGoal()">➕</button>
+    </div>
+
+    <div id="savingsList"></div>
+</div>
 
             <!-- ==================== CATEGORIES ==================== -->
-            <section id="pageCategories" class="page">
-                <div class="page-header">
-                    <h2>Categories</h2>
-                    <button class="btn-small" onclick="Categories.showAdd()">+ New</button>
-                </div>
-                <div class="filter-tabs">
-                    <button class="tab active" data-filter="expense" onclick="Categories.filter('expense', this)">Expense</button>
-                    <button class="tab" data-filter="income" onclick="Categories.filter('income', this)">Income</button>
-                </div>
-                <div id="categoriesList" class="categories-list">
-                    <div class="empty-state">
-                        <span>No categories yet</span>
-                    </div>
-                </div>
-            </section>
+            <div id="categoriesPage" class="page">
+    <div class="page-header">
+        <h1>Categories</h1>
+        <button class="btn-icon" onclick="Categories.showAdd()">➕</button>
+    </div>
+
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="Categories.filter('expense', this)">Expenses</button>
+        <button class="filter-btn" onclick="Categories.filter('income', this)">Income</button>
+    </div>
+
+    <div id="categoriesList"></div>
+</div>
 
             <!-- ==================== REPORTS ==================== -->
-            <section id="pageReports" class="page">
-                <div class="page-header">
-                    <h2>📊 Reports</h2>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Income vs Expenses vs Savings</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="reportChart"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Category Breakdown</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                </div>
-                <div class="export-buttons">
-                    <button class="btn-secondary" onclick="Reports.exportCSV()">📄 Export CSV</button>
-                    <button class="btn-secondary" onclick="Reports.exportPDF()">📑 Export PDF</button>
-                </div>
-            </section>
+            <div id="reportsPage" class="page">
+    <div class="page-header">
+        <h1>Reports</h1>
+    </div>
+
+    <div id="reportsContent"></div>
+</div>
 
             <!-- ==================== SETTINGS ==================== -->
             <section id="pageSettings" class="page">
@@ -249,186 +198,202 @@
 
         </main>
 
-        <!-- ==================== ADD TRANSACTION MODAL ==================== -->
-        <div id="modalTransaction" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="modalTransactionTitle">Add Transaction</h3>
-                    <button class="icon-btn" onclick="App.closeModal('modalTransaction')">✕</button>
-                </div>
-                <form id="formTransaction" onsubmit="Transactions.save(event)">
-                    <div class="form-group">
-                        <label>Type</label>
-                        <div class="type-toggle">
-                            <button type="button" class="type-btn active" data-type="expense" onclick="Transactions.setType('expense', this)">💸 Expense</button>
-                            <button type="button" class="type-btn" data-type="income" onclick="Transactions.setType('income', this)">💶 Income</button>
-                            <button type="button" class="type-btn" data-type="savings" onclick="Transactions.setType('savings', this)">🏦 Savings</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <select id="txCategory" required>
-                            <option value="">Select category...</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="savingsGoalGroup" style="display:none;">
-                        <label>Savings Goal</label>
-                        <select id="txSavingsGoal">
-                            <option value="">Select goal...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Amount (€)</label>
-                        <input type="number" id="txAmount" step="0.01" min="0.01" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="txDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Notes (optional)</label>
-                        <input type="text" id="txNotes" placeholder="Add a note...">
-                    </div>
-                    <div class="form-group" id="invoiceGroup">
-                        <label>Invoice / Receipt</label>
-                        <div class="invoice-upload">
-                            <button type="button" class="btn-secondary" onclick="Invoices.capture()">📷 Camera</button>
-                            <button type="button" class="btn-secondary" onclick="Invoices.upload()">📁 File</button>
-                        </div>
-                        <input type="file" id="txInvoiceFile" accept="image/*,.pdf" style="display:none;" onchange="Invoices.handleFile(event)">
-                        <input type="file" id="txInvoiceCamera" accept="image/*" capture="environment" style="display:none;" onchange="Invoices.handleFile(event)">
-                        <div id="invoicePreview" class="invoice-preview hidden"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="txRecurring">
-                            <span>🔄 Monthly recurring</span>
-                        </label>
-                    </div>
-                    <input type="hidden" id="txId">
-                    <input type="hidden" id="txType" value="expense">
-                    <button type="submit" class="btn-primary btn-full">Save Transaction</button>
-                </form>
-            </div>
-        </div>
+        <!-- ========== MODALS ========== -->
 
-        <!-- ==================== ADD SAVINGS GOAL MODAL ==================== -->
-        <div id="modalSavingsGoal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>New Savings Goal</h3>
-                    <button class="icon-btn" onclick="App.closeModal('modalSavingsGoal')">✕</button>
-                </div>
-                <form id="formSavingsGoal" onsubmit="Savings.saveGoal(event)">
-                    <div class="form-group">
-                        <label>Goal Name</label>
-                        <input type="text" id="goalName" required placeholder="e.g., Emergency Fund">
-                    </div>
-                    <div class="form-group">
-                        <label>Target Amount (€)</label>
-                        <input type="number" id="goalTarget" step="0.01" min="1" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Deadline (optional)</label>
-                        <input type="date" id="goalDeadline">
-                    </div>
-                    <div class="form-group">
-                        <label>Icon</label>
-                        <div class="icon-picker" id="goalIconPicker">
-                            <button type="button" class="icon-option active" data-icon="🏦" onclick="Savings.setIcon('🏦', this)">🏦</button>
-                            <button type="button" class="icon-option" data-icon="🎯" onclick="Savings.setIcon('🎯', this)">🎯</button>
-                            <button type="button" class="icon-option" data-icon="✈️" onclick="Savings.setIcon('✈️', this)">✈️</button>
-                            <button type="button" class="icon-option" data-icon="🏠" onclick="Savings.setIcon('🏠', this)">🏠</button>
-                            <button type="button" class="icon-option" data-icon="🚗" onclick="Savings.setIcon('🚗', this)">🚗</button>
-                            <button type="button" class="icon-option" data-icon="💻" onclick="Savings.setIcon('💻', this)">💻</button>
-                            <button type="button" class="icon-option" data-icon="🎓" onclick="Savings.setIcon('🎓', this)">🎓</button>
-                            <button type="button" class="icon-option" data-icon="💍" onclick="Savings.setIcon('💍', this)">💍</button>
-                            <button type="button" class="icon-option" data-icon="🎁" onclick="Savings.setIcon('🎁', this)">🎁</button>
-                            <button type="button" class="icon-option" data-icon="⭐" onclick="Savings.setIcon('⭐', this)">⭐</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Color</label>
-                        <div class="color-picker" id="goalColorPicker">
-                            <button type="button" class="color-option active" data-color="#F39C12" style="background:#F39C12" onclick="Savings.setColor('#F39C12', this)"></button>
-                            <button type="button" class="color-option" data-color="#2ECC71" style="background:#2ECC71" onclick="Savings.setColor('#2ECC71', this)"></button>
-                            <button type="button" class="color-option" data-color="#3498DB" style="background:#3498DB" onclick="Savings.setColor('#3498DB', this)"></button>
-                            <button type="button" class="color-option" data-color="#E74C3C" style="background:#E74C3C" onclick="Savings.setColor('#E74C3C', this)"></button>
-                            <button type="button" class="color-option" data-color="#9B59B6" style="background:#9B59B6" onclick="Savings.setColor('#9B59B6', this)"></button>
-                            <button type="button" class="color-option" data-color="#1ABC9C" style="background:#1ABC9C" onclick="Savings.setColor('#1ABC9C', this)"></button>
-                            <button type="button" class="color-option" data-color="#E67E22" style="background:#E67E22" onclick="Savings.setColor('#E67E22', this)"></button>
-                            <button type="button" class="color-option" data-color="#6C63FF" style="background:#6C63FF" onclick="Savings.setColor('#6C63FF', this)"></button>
-                        </div>
-                    </div>
-                    <input type="hidden" id="goalId">
-                    <input type="hidden" id="goalIcon" value="🏦">
-                    <input type="hidden" id="goalColor" value="#F39C12">
-                    <button type="submit" class="btn-primary btn-full">Create Goal</button>
-                </form>
-            </div>
+<!-- Add/Edit Transaction Modal -->
+<div id="modalTransaction" class="modal">
+    <div class="modal-overlay" onclick="App.closeModal('modalTransaction')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTransactionTitle">New Transaction</h2>
+            <button class="modal-close" onclick="App.closeModal('modalTransaction')">✕</button>
         </div>
+        <form onsubmit="Transactions.save(event)">
+            <input type="hidden" id="txType" value="expense">
 
-        <!-- ==================== ADD CATEGORY MODAL ==================== -->
-        <div id="modalCategory" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>New Category</h3>
-                    <button class="icon-btn" onclick="App.closeModal('modalCategory')">✕</button>
+            <!-- Type Selector -->
+            <div class="form-group">
+                <label>Type</label>
+                <div class="type-selector">
+                    <button type="button" class="type-btn" data-type="income" onclick="Transactions.setType('income', this)">
+                        💰 Income
+                    </button>
+                    <button type="button" class="type-btn active" data-type="expense" onclick="Transactions.setType('expense', this)">
+                        💸 Expense
+                    </button>
+                    <button type="button" class="type-btn" data-type="savings" onclick="Transactions.setType('savings', this)">
+                        🎯 Savings
+                    </button>
                 </div>
-                <form id="formCategory" onsubmit="Categories.save(event)">
-                    <div class="form-group">
-                        <label>Type</label>
-                        <div class="type-toggle">
-                            <button type="button" class="type-btn active" data-type="expense" onclick="Categories.setType('expense', this)">💸 Expense</button>
-                            <button type="button" class="type-btn" data-type="income" onclick="Categories.setType('income', this)">💶 Income</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" id="catName" required placeholder="e.g., Groceries">
-                    </div>
-                    <div class="form-group">
-                        <label>Icon</label>
-                        <div class="icon-picker" id="catIconPicker">
-                            <button type="button" class="icon-option active" data-icon="🛒" onclick="Categories.setIcon('🛒', this)">🛒</button>
-                            <button type="button" class="icon-option" data-icon="🍔" onclick="Categories.setIcon('🍔', this)">🍔</button>
-                            <button type="button" class="icon-option" data-icon="🚗" onclick="Categories.setIcon('🚗', this)">🚗</button>
-                            <button type="button" class="icon-option" data-icon="🏠" onclick="Categories.setIcon('🏠', this)">🏠</button>
-                            <button type="button" class="icon-option" data-icon="💡" onclick="Categories.setIcon('💡', this)">💡</button>
-                            <button type="button" class="icon-option" data-icon="🎮" onclick="Categories.setIcon('🎮', this)">🎮</button>
-                            <button type="button" class="icon-option" data-icon="👕" onclick="Categories.setIcon('👕', this)">👕</button>
-                            <button type="button" class="icon-option" data-icon="💊" onclick="Categories.setIcon('💊', this)">💊</button>
-                            <button type="button" class="icon-option" data-icon="📚" onclick="Categories.setIcon('📚', this)">📚</button>
-                            <button type="button" class="icon-option" data-icon="✈️" onclick="Categories.setIcon('✈️', this)">✈️</button>
-                            <button type="button" class="icon-option" data-icon="💼" onclick="Categories.setIcon('💼', this)">💼</button>
-                            <button type="button" class="icon-option" data-icon="💰" onclick="Categories.setIcon('💰', this)">💰</button>
-                            <button type="button" class="icon-option" data-icon="🎵" onclick="Categories.setIcon('🎵', this)">🎵</button>
-                            <button type="button" class="icon-option" data-icon="📱" onclick="Categories.setIcon('📱', this)">📱</button>
-                            <button type="button" class="icon-option" data-icon="🏥" onclick="Categories.setIcon('🏥', this)">🏥</button>
-                            <button type="button" class="icon-option" data-icon="🐕" onclick="Categories.setIcon('🐕', this)">🐕</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Color</label>
-                        <div class="color-picker" id="catColorPicker">
-                            <button type="button" class="color-option active" data-color="#6C63FF" style="background:#6C63FF" onclick="Categories.setColor('#6C63FF', this)"></button>
-                            <button type="button" class="color-option" data-color="#2ECC71" style="background:#2ECC71" onclick="Categories.setColor('#2ECC71', this)"></button>
-                            <button type="button" class="color-option" data-color="#E74C3C" style="background:#E74C3C" onclick="Categories.setColor('#E74C3C', this)"></button>
-                            <button type="button" class="color-option" data-color="#3498DB" style="background:#3498DB" onclick="Categories.setColor('#3498DB', this)"></button>
-                            <button type="button" class="color-option" data-color="#F39C12" style="background:#F39C12" onclick="Categories.setColor('#F39C12', this)"></button>
-                            <button type="button" class="color-option" data-color="#9B59B6" style="background:#9B59B6" onclick="Categories.setColor('#9B59B6', this)"></button>
-                            <button type="button" class="color-option" data-color="#1ABC9C" style="background:#1ABC9C" onclick="Categories.setColor('#1ABC9C', this)"></button>
-                            <button type="button" class="color-option" data-color="#E67E22" style="background:#E67E22" onclick="Categories.setColor('#E67E22', this)"></button>
-                        </div>
-                    </div>
-                    <input type="hidden" id="catId">
-                    <input type="hidden" id="catType" value="expense">
-                    <input type="hidden" id="catIcon" value="🛒">
-                    <input type="hidden" id="catColor" value="#6C63FF">
-                    <button type="submit" class="btn-primary btn-full">Save Category</button>
-                </form>
             </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+                <label for="txAmount">Amount</label>
+                <input type="number" id="txAmount" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label for="txCategory">Category</label>
+                <select id="txCategory">
+                    <option value="">Select category...</option>
+                </select>
+            </div>
+
+            <!-- Savings Goal (hidden by default) -->
+            <div class="form-group" id="savingsGoalGroup" style="display: none;">
+                <label for="txSavingsGoal">Savings Goal</label>
+                <select id="txSavingsGoal">
+                    <option value="">Select goal...</option>
+                </select>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="txDescription">Description</label>
+                <input type="text" id="txDescription" placeholder="What was this for?">
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+                <label for="txDate">Date</label>
+                <input type="date" id="txDate" required>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group">
+                <label for="txNotes">Notes (optional)</label>
+                <textarea id="txNotes" rows="2" placeholder="Any additional notes..."></textarea>
+            </div>
+
+            <!-- Invoice -->
+            <div class="form-group" id="invoiceGroup">
+                <label>Invoice / Receipt</label>
+                <div class="invoice-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="Invoices.capture()">📷 Camera</button>
+                    <button type="button" class="btn btn-secondary" onclick="Invoices.upload()">📎 Upload</button>
+                </div>
+                <input type="file" id="txInvoiceCamera" accept="image/*" capture="environment" style="display:none" onchange="Invoices.handleFile(event)">
+                <input type="file" id="txInvoiceFile" accept="image/*,.pdf" style="display:none" onchange="Invoices.handleFile(event)">
+                <div id="invoicePreview"></div>
+            </div>
+
+            <!-- Recurring -->
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="txRecurring">
+                    <span>🔄 Recurring transaction</span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <button type="submit" class="btn btn-primary btn-full">Save Transaction</button>
+            <button type="button" id="deleteTransactionBtn" class="btn-delete" style="display:none" onclick="Transactions.delete()">
+                🗑️ Delete Transaction
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div id="modalCategory" class="modal">
+    <div class="modal-overlay" onclick="App.closeModal('modalCategory')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalCategoryTitle">New Category</h2>
+            <button class="modal-close" onclick="App.closeModal('modalCategory')">✕</button>
         </div>
+        <form onsubmit="Categories.save(event)">
+            <input type="hidden" id="catType" value="expense">
+
+            <!-- Type Selector -->
+            <div class="form-group">
+                <label>Type</label>
+                <div class="type-selector">
+                    <button type="button" class="type-btn" data-type="income" onclick="Categories.setType('income', this)">
+                        💰 Income
+                    </button>
+                    <button type="button" class="type-btn active" data-type="expense" onclick="Categories.setType('expense', this)">
+                        💸 Expense
+                    </button>
+                </div>
+            </div>
+
+            <!-- Name -->
+            <div class="form-group">
+                <label for="catName">Name</label>
+                <input type="text" id="catName" placeholder="Category name" required>
+            </div>
+
+            <!-- Icon -->
+            <div class="form-group">
+                <label>Icon</label>
+                <div id="iconPicker"></div>
+            </div>
+
+            <!-- Color -->
+            <div class="form-group">
+                <label>Color</label>
+                <div id="colorPicker"></div>
+            </div>
+
+            <!-- Actions -->
+            <button type="submit" class="btn btn-primary btn-full">Save Category</button>
+            <button type="button" id="deleteCategoryBtn" class="btn-delete" style="display:none" onclick="Categories.delete()">
+                🗑️ Delete Category
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Savings Goal Modal -->
+<div id="modalSavingsGoal" class="modal">
+    <div class="modal-overlay" onclick="App.closeModal('modalSavingsGoal')"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalSavingsTitle">New Savings Goal</h2>
+            <button class="modal-close" onclick="App.closeModal('modalSavingsGoal')">✕</button>
+        </div>
+        <form onsubmit="Savings.saveGoal(event)">
+            <!-- Name -->
+            <div class="form-group">
+                <label for="goalName">Goal Name</label>
+                <input type="text" id="goalName" placeholder="e.g., Emergency Fund" required>
+            </div>
+
+            <!-- Target Amount -->
+            <div class="form-group">
+                <label for="goalAmount">Target Amount</label>
+                <input type="number" id="goalAmount" step="0.01" min="1" placeholder="0.00" required>
+            </div>
+
+            <!-- Deadline -->
+            <div class="form-group">
+                <label for="goalDeadline">Deadline (optional)</label>
+                <input type="date" id="goalDeadline">
+            </div>
+
+            <!-- Icon -->
+            <div class="form-group">
+                <label>Icon</label>
+                <div id="goalIconPicker"></div>
+            </div>
+
+            <!-- Color -->
+            <div class="form-group">
+                <label>Color</label>
+                <div id="goalColorPicker"></div>
+            </div>
+
+            <!-- Actions -->
+            <button type="submit" class="btn btn-primary btn-full">Save Goal</button>
+            <button type="button" id="deleteGoalBtn" class="btn-delete" style="display:none" onclick="Savings.deleteGoal()">
+                🗑️ Delete Goal
+            </button>
+        </form>
+    </div>
+</div>
 
         <!-- ==================== CONFIRM DIALOG ==================== -->
         <div id="modalConfirm" class="modal hidden">
