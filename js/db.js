@@ -4,7 +4,7 @@
 
 const DB = {
     name: 'MGHICFinanceDB',
-    version: 1,
+    version: 2,  // Bumped version to trigger upgrade
     db: null,
 
     // Initialize database
@@ -15,43 +15,35 @@ const DB = {
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
 
+                // Delete old stores if upgrading
+                const storeNames = ['transactions', 'categories', 'savingsGoals', 'savingsTransactions', 'invoices', 'settings'];
+                storeNames.forEach(name => {
+                    if (db.objectStoreNames.contains(name)) {
+                        db.deleteObjectStore(name);
+                    }
+                });
+
                 // Transactions store
-                if (!db.objectStoreNames.contains('transactions')) {
-                    const txStore = db.createObjectStore('transactions', { keyPath: 'id' });
-                    txStore.createIndex('type', 'type', { unique: false });
-                    txStore.createIndex('categoryId', 'categoryId', { unique: false });
-                    txStore.createIndex('date', 'date', { unique: false });
-                    txStore.createIndex('month', 'month', { unique: false });
-                }
+                const txStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+                txStore.createIndex('type', 'type', { unique: false });
+                txStore.createIndex('categoryId', 'categoryId', { unique: false });
+                txStore.createIndex('date', 'date', { unique: false });
 
                 // Categories store
-                if (!db.objectStoreNames.contains('categories')) {
-                    const catStore = db.createObjectStore('categories', { keyPath: 'id' });
-                    catStore.createIndex('type', 'type', { unique: false });
-                }
+                const catStore = db.createObjectStore('categories', { keyPath: 'id', autoIncrement: true });
+                catStore.createIndex('type', 'type', { unique: false });
 
                 // Savings Goals store
-                if (!db.objectStoreNames.contains('savingsGoals')) {
-                    const savStore = db.createObjectStore('savingsGoals', { keyPath: 'id' });
-                }
+                db.createObjectStore('savingsGoals', { keyPath: 'id', autoIncrement: true });
 
-                // Savings Transactions store
-                if (!db.objectStoreNames.contains('savingsTransactions')) {
-                    const savTxStore = db.createObjectStore('savingsTransactions', { keyPath: 'id' });
-                    savTxStore.createIndex('goalId', 'goalId', { unique: false });
-                    savTxStore.createIndex('date', 'date', { unique: false });
-                }
-
-                // Invoices store (binary data)
-                if (!db.objectStoreNames.contains('invoices')) {
-                    const invStore = db.createObjectStore('invoices', { keyPath: 'id' });
-                    invStore.createIndex('transactionId', 'transactionId', { unique: false });
-                }
+                // Invoices store
+                const invStore = db.createObjectStore('invoices', { keyPath: 'id', autoIncrement: true });
+                invStore.createIndex('transactionId', 'transactionId', { unique: false });
 
                 // Settings store
-                if (!db.objectStoreNames.contains('settings')) {
-                    db.createObjectStore('settings', { keyPath: 'key' });
-                }
+                db.createObjectStore('settings', { keyPath: 'key' });
+
+                console.log('✅ Database schema created/upgraded');
             };
 
             request.onsuccess = (event) => {
@@ -67,18 +59,27 @@ const DB = {
         });
     },
 
-    // Generic CRUD operations
+    // Add record (auto-generates ID)
     async add(storeName, data) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readwrite');
             const store = tx.objectStore(storeName);
-            const request = store.add(data);
-            request.onsuccess = () => resolve(data);
+            // Remove id if present so autoIncrement works
+            const cleanData = { ...data };
+            if (cleanData.id === undefined || cleanData.id === null) {
+                delete cleanData.id;
+            }
+            const request = store.add(cleanData);
+            request.onsuccess = () => {
+                cleanData.id = request.result;
+                resolve(cleanData);
+            };
             request.onerror = () => reject(request.error);
         });
     },
 
-    async put(storeName, data) {
+    // Update record
+    async update(storeName, data) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readwrite');
             const store = tx.objectStore(storeName);
@@ -88,6 +89,7 @@ const DB = {
         });
     },
 
+    // Get single record
     async get(storeName, id) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readonly');
@@ -98,6 +100,7 @@ const DB = {
         });
     },
 
+    // Get all records
     async getAll(storeName) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readonly');
@@ -108,6 +111,7 @@ const DB = {
         });
     },
 
+    // Get by index
     async getAllByIndex(storeName, indexName, value) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readonly');
@@ -119,6 +123,7 @@ const DB = {
         });
     },
 
+    // Delete record
     async delete(storeName, id) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readwrite');
@@ -129,6 +134,7 @@ const DB = {
         });
     },
 
+    // Clear single store
     async clear(storeName) {
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction(storeName, 'readwrite');
@@ -139,26 +145,22 @@ const DB = {
         });
     },
 
+    // Clear all stores
     async clearAll() {
-        const stores = ['transactions', 'categories', 'savingsGoals', 'savingsTransactions', 'invoices', 'settings'];
+        const stores = ['transactions', 'categories', 'savingsGoals', 'invoices', 'settings'];
         for (const store of stores) {
             await this.clear(store);
         }
         return true;
     },
 
-    // Helper: Generate unique ID
-    generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-    },
-
-    // Helper: Get current month key (YYYY-MM)
+    // Get current month key (YYYY-MM)
     getCurrentMonth() {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     },
 
-    // Helper: Format currency
+    // Format currency
     formatCurrency(amount) {
         return new Intl.NumberFormat('de-DE', {
             style: 'currency',
