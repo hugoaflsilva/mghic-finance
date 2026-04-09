@@ -1,4 +1,839 @@
 /* ============================================
+   MGHIC FINANCE APP - COMPLETE STYLESHEET
+   ============================================ */
+
+/* ============================================
+   CSS VARIABLES (THEME)
+   ============================================ */
+:root {
+    /* Dark Theme (Default) */
+    --bg-primary: #1A1A2E;
+    --bg-secondary: #16213E;
+    --card-bg: #1F2940;
+    --text-primary: #FFFFFF;
+    --text-secondary: #8B95A5;
+    --primary: #6C2DC7;
+    --primary-light: rgba(108, 45, 199, 0.15);
+    --primary-dark: #5A24A8;
+    --success: #2ECC71;
+    --danger: #E74C3C;
+    --warning: #F39C12;
+    --info: #00A3E0;
+    --border: rgba(255, 255, 255, 0.08);
+    --shadow: rgba(0, 0, 0, 0.3);
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --nav-bg: #0F1525;
+    --input-bg: #253352;
+}
+
+[data-theme="light"] {
+    --bg-primary: #F5F7FA;
+    --bg-secondary: #FFFFFF;
+    --card-bg: #FFFFFF;
+    --text-primary: #1A1A2E;
+    --text-secondary: #6B7280;
+    --border: rgba(0, 0, 0, 0.08);
+    --shadow: rgba(0, 0, 0, 0.1);
+    --modal-bg: rgba(0, 0, 0, 0.4);
+    --nav-bg: #FFFFFF;
+    --input-bg: #F0F2F5;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Safe areas for notched devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+/* ============================================
+   SPLASH / LOCK SCREEN
+   ============================================ */
+.screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: var(--bg-primary);
+}
+
+.screen.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lock-container {
+    text-align: center;
+    padding: 40px 30px;
+    animation: fadeInUp 0.6s ease;
+}
+
+.app-logo {
+    font-size: 72px;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.lock-container h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.lock-container h2 {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.lock-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn-primary, .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-primary, .btn.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 45, 199, 0.3);
+}
+
+.btn-primary:active, .btn.btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(108, 45, 199, 0.2);
+}
+
+.btn-secondary, .btn.btn-secondary {
+    background: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    font-size: 14px;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.btn-icon:active {
+    background: var(--primary-light);
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+/* ============================================
+   APP CONTAINER
+   ============================================ */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.app-container.hidden {
+    display: none;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 8px;
+    background: var(--bg-primary);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-greeting {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.header-title {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* ============================================
+   PAGE CONTAINER
+   ============================================ */
+.page-container {
+    flex: 1;
+    padding: 0 20px 100px;
+    overflow-y: auto;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-top: 8px;
+}
+
+.page-header h1, .page-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* ============================================
+   DASHBOARD
+   ============================================ */
+.dashboard-month {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.balance-card {
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+}
+
+.balance-card.main-balance {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    text-align: center;
+    padding: 28px 20px;
+}
+
+.balance-card.main-balance .balance-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.balance-card.main-balance .balance-amount {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    display: block;
+}
+
+.balance-cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.balance-cards-row .balance-card {
+    background: var(--card-bg);
+    text-align: center;
+    padding: 16px 10px;
+    margin-bottom: 0;
+}
+
+.balance-cards-row .balance-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.balance-cards-row .balance-amount {
+    font-size: 16px;
+    font-weight: 700;
+    display: block;
+}
+
+.balance-card.income .balance-amount {
+    color: var(--success);
+}
+
+.balance-card.expense .balance-amount {
+    color: var(--danger);
+}
+
+.balance-card.savings .balance-amount {
+    color: var(--info);
+}
+
+/* ============================================
+   FILTER BAR
+   ============================================ */
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.filter-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ============================================
+   FLOATING ACTION BUTTON
+   ============================================ */
+.fab {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-size: 28px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(108, 45, 199, 0.4);
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.fab:active {
+    transform: scale(0.92);
+}
+
+/* ============================================
+   BOTTOM NAVIGATION
+   ============================================ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
+    padding: 8px 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    min-width: 56px;
+}
+
+.nav-item.active {
+    color: var(--primary);
+}
+
+.nav-icon {
+    font-size: 22px;
+}
+
+.nav-label {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 500;
+}
+
+.modal.active {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--modal-bg);
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border-radius: 20px 20px 0 0;
+    padding: 24px;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+    z-index: 1;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--input-bg);
+    border: none;
+    color: var(--text-primary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-small {
+    border-radius: 20px;
+    max-width: 360px;
+    margin: auto;
+    text-align: center;
+    padding: 30px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B95A5' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* Type Selector */
+.type-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.type-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    color: var(--text-primary) !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--primary);
+}
+
+/* Invoice Buttons */
+.invoice-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.invoice-buttons .btn {
+    flex: 1;
+    font-size: 13px;
+    padding: 10px;
+}
+
+/* ============================================
+   SETTINGS
+   ============================================ */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item.danger {
+    color: var(--danger);
+}
+
+.settings-value {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.settings-arrow {
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+.settings-input {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+/* Toggle Switch */
+.toggle {
+    position: relative;
+    width: 48px;
+    height: 28px;
+    display: inline-block;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--input-bg);
+    border-radius: 28px;
+    transition: 0.3s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.toggle input:checked + .toggle-slider {
+    background: var(--primary);
+}
+
+.toggle input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.toast {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 9999;
+    animation: slideDown 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+    max-width: 90%;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.toast.error {
+    border-left: 4px solid var(--danger);
+}
+
+.toast.success {
+    border-left: 4px solid var(--success);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.hidden {
+    display: none !important;
+}
+
+/* ============================================
    PHASE 2 - ADDITIONAL STYLES
    ============================================ */
 
