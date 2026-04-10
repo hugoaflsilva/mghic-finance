@@ -36,6 +36,39 @@
         </div>
     </div>
 
+    <!-- Initial Setup Screen (shows once) -->
+    <div id="setupScreen" class="screen">
+        <div class="setup-container">
+            <div class="setup-header">
+                <span class="setup-icon">💰</span>
+                <h1>What's your current balance?</h1>
+                <p>Enter the total amount you have in your bank account(s) right now. This helps us track your finances accurately from day one.</p>
+            </div>
+
+            <form onsubmit="Setup.save(event)">
+                <div class="setup-card">
+                    <div class="setup-input-wrapper">
+                        <span class="setup-currency">€</span>
+                        <input type="number" id="setupBankBalance" step="0.01" min="0" placeholder="0.00" inputmode="decimal" required>
+                    </div>
+                </div>
+
+                <div class="setup-preview">
+                    <span class="setup-preview-label">Your starting balance</span>
+                    <span class="setup-preview-amount" id="setupPreviewAmount">0,00 €</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full setup-btn">
+                    🚀 Start Tracking
+                </button>
+
+                <button type="button" class="setup-skip" onclick="Setup.skip()">
+                    Skip — I'll start from zero
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Main App Container -->
     <div id="appContainer" class="app-container hidden">
         
@@ -382,6 +415,22 @@
                 <label for="goalDeadline">Deadline (optional)</label>
                 <input type="date" id="goalDeadline">
             </div>
+            <!-- Existing Goal Toggle -->
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="goalIsExisting" onchange="document.getElementById('existingAmountGroup').style.display = this.checked ? 'block' : 'none'">
+                            🔄 I already have money saved for this
+                        </label>
+                    </div>
+                </div>
+
+            <!-- Existing Amount (hidden by default) -->
+            <div class="form-group" id="existingAmountGroup" style="display: none;">
+                <label>Amount Already Saved</label>
+                <input type="number" id="goalExistingAmount" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
+                <p class="setup-hint" style="margin-top: 6px;">This will be added as your starting balance for this goal</p>
+            </div>
 
             <!-- Icon -->
             <div class="form-group">
@@ -447,6 +496,7 @@
 
     <!-- Scripts -->
     <script src="js/db.js"></script>
+    <script src="js/setup.js"></script>
     <script src="js/app.js"></script>
     <script src="js/categories.js"></script>
     <script src="js/transactions.js"></script>

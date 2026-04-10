@@ -158,7 +158,13 @@ const Savings = {
         document.getElementById('goalName').value = '';
         document.getElementById('goalAmount').value = '';
         document.getElementById('goalDeadline').value = '';
+        document.getElementById('goalExistingAmount').value = '';
+        document.getElementById('existingAmountGroup').style.display = 'none';
         document.getElementById('deleteGoalBtn').style.display = 'none';
+
+        // Reset toggle
+        const toggle = document.getElementById('goalIsExisting');
+        if (toggle) toggle.checked = false;
 
         this.renderIconPicker();
         this.renderColorPicker();
@@ -177,7 +183,16 @@ const Savings = {
         document.getElementById('goalName').value = goal.name;
         document.getElementById('goalAmount').value = goal.targetAmount;
         document.getElementById('goalDeadline').value = goal.deadline || '';
+        document.getElementById('goalExistingAmount').value = '';
+        document.getElementById('existingAmountGroup').style.display = 'none';
         document.getElementById('deleteGoalBtn').style.display = 'block';
+
+        // Hide existing toggle when editing
+        const toggle = document.getElementById('goalIsExisting');
+        if (toggle) {
+            toggle.checked = false;
+            toggle.closest('.form-group').style.display = 'none';
+        }
 
         this.renderIconPicker();
         this.renderColorPicker();
@@ -236,6 +251,8 @@ const Savings = {
         const name = document.getElementById('goalName').value.trim();
         const targetAmount = parseFloat(document.getElementById('goalAmount').value);
         const deadline = document.getElementById('goalDeadline').value || null;
+        const isExisting = document.getElementById('goalIsExisting')?.checked || false;
+        const existingAmount = parseFloat(document.getElementById('goalExistingAmount')?.value) || 0;
 
         if (!name) {
             App.showToast('Please enter a goal name', 'error');
@@ -243,6 +260,10 @@ const Savings = {
         }
         if (!targetAmount || targetAmount <= 0) {
             App.showToast('Please enter a valid target amount', 'error');
+            return;
+        }
+        if (isExisting && existingAmount > targetAmount) {
+            App.showToast('Existing amount cannot exceed target', 'error');
             return;
         }
 
@@ -256,15 +277,42 @@ const Savings = {
         };
 
         try {
+            let savedGoal;
+
             if (this.editingId) {
                 await DB.update('savingsGoals', { ...data, id: this.editingId });
+                savedGoal = { ...data, id: this.editingId };
                 App.showToast('Goal updated! ✅');
             } else {
-                await DB.add('savingsGoals', data);
+                savedGoal = await DB.add('savingsGoals', data);
                 App.showToast('Goal created! 🎯');
+
+                // If existing goal with money already saved, create opening transaction
+                if (isExisting && existingAmount > 0) {
+                    const today = new Date().toISOString().split('T')[0];
+                    await DB.add('transactions', {
+                        amount: existingAmount,
+                        type: 'savings',
+                        categoryId: null,
+                        savingsGoalId: savedGoal.id,
+                        description: `🎯 Existing balance — ${name}`,
+                        date: today,
+                        notes: 'Pre-existing savings set during goal creation',
+                        isRecurring: false,
+                        isOpeningBalance: true,
+                        createdAt: new Date().toISOString()
+                    });
+
+                    App.showToast(`Goal created with ${DB.formatCurrency(existingAmount)} already saved! 🎯`);
+                }
             }
 
             App.closeModal('modalSavingsGoal');
+            
+            // Show existing toggle again for next time
+            const toggle = document.getElementById('goalIsExisting');
+            if (toggle) toggle.closest('.form-group').style.display = 'block';
+
             this.load();
         } catch (error) {
             App.showToast('Error saving goal', 'error');

@@ -3,13 +3,14 @@
    Smart caching with auto-update
    ============================================ */
 
-const CACHE_VERSION = 'mghic-v2';
+const CACHE_VERSION = 'mghic-v3';
 
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/css/styles.css',
     '/js/db.js',
+    '/js/setup.js',
     '/js/app.js',
     '/js/categories.js',
     '/js/transactions.js',

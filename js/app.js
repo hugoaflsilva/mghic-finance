@@ -18,10 +18,18 @@ const App = {
     },
 
     // Unlock / Enter app
-    unlock() {
+    async unlock() {
         document.getElementById('lockScreen').classList.remove('active');
-        document.getElementById('appContainer').classList.remove('hidden');
-        this.navigate('dashboard');
+        
+        // Check if initial setup has been completed
+        const setupDone = await Setup.isCompleted();
+        
+        if (!setupDone) {
+            Setup.show();
+        } else {
+            document.getElementById('appContainer').classList.remove('hidden');
+            this.navigate('dashboard');
+        }
     },
 
     // Navigation
