@@ -7,7 +7,6 @@ const Dashboard = {
     async load() {
         const transactions = await DB.getAll('transactions');
         const categories = await DB.getAll('categories');
-        const settings = await DB.get('settings', 'preferences') || {};
 
         // Current month filter
         const now = new Date();
@@ -19,16 +18,29 @@ const Dashboard = {
             return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
 
-        // Calculate totals
-        const totalIncome = monthTransactions
+        // Monthly totals
+        const monthIncome = monthTransactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const totalExpenses = monthTransactions
+        const monthExpenses = monthTransactions
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const totalSavings = monthTransactions
+        const monthSavings = monthTransactions
+            .filter(t => t.type === 'savings')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // TOTAL balance = ALL transactions ever (not just this month)
+        const totalIncome = transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const totalExpenses = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const totalSavings = transactions
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
@@ -37,20 +49,20 @@ const Dashboard = {
         // Update dashboard cards
         document.getElementById('dashMonth').textContent = App.getCurrentMonthLabel();
         document.getElementById('dashAvailableBalance').textContent = DB.formatCurrency(availableBalance);
-        document.getElementById('dashTotalIncome').textContent = DB.formatCurrency(totalIncome);
-        document.getElementById('dashTotalExpenses').textContent = DB.formatCurrency(totalExpenses);
-        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(totalSavings);
+        document.getElementById('dashTotalIncome').textContent = DB.formatCurrency(monthIncome);
+        document.getElementById('dashTotalExpenses').textContent = DB.formatCurrency(monthExpenses);
+        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(monthSavings);
 
         // Color the balance
         const balanceEl = document.getElementById('dashAvailableBalance');
         if (balanceEl) {
-            balanceEl.style.color = availableBalance >= 0 ? 'var(--success)' : 'var(--danger)';
+            balanceEl.style.color = availableBalance >= 0 ? '#FFFFFF' : 'var(--danger)';
         }
 
-        // Render expense breakdown
+        // Render expense breakdown (current month)
         this.renderExpenseBreakdown(monthTransactions, categories);
 
-        // Render recent transactions
+        // Render recent transactions (all time)
         this.renderRecentTransactions(transactions, categories);
     },
 
@@ -82,7 +94,7 @@ const Dashboard = {
         // Sort by amount descending
         const sorted = Object.entries(byCategory)
             .sort(([, a], [, b]) => b - a)
-            .slice(0, 6); // Top 6
+            .slice(0, 6);
 
         let html = '<div class="breakdown-list">';
         
@@ -120,7 +132,6 @@ const Dashboard = {
         const container = document.getElementById('recentTransactions');
         if (!container) return;
 
-        // Get last 5 transactions
         const recent = [...transactions]
             .sort((a, b) => new Date(b.date) - new Date(a.date))
             .slice(0, 5);

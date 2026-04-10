@@ -53,6 +53,13 @@ const App = {
             item.classList.toggle('active', item.dataset.page === page);
         });
 
+        // Show/hide FAB (only on dashboard, transactions, savings)
+        const fab = document.getElementById('fabAdd');
+        if (fab) {
+            const fabPages = ['dashboard', 'transactions', 'savings'];
+            fab.style.display = fabPages.includes(page) ? 'flex' : 'none';
+        }
+
         this.currentPage = page;
 
         // Refresh page data
