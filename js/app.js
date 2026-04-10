@@ -36,7 +36,8 @@ const App = {
             'savings': 'savingsPage',
             'categories': 'categoriesPage',
             'reports': 'reportsPage',
-            'settings': 'pageSettings'
+            'settings': 'pageSettings',
+            'breakdown': 'breakdownPage'
         };
 
         const targetId = pageMap[page];
@@ -79,6 +80,9 @@ const App = {
             case 'reports':
                 if (typeof Reports !== 'undefined') Reports.load();
                 break;
+            case 'breakdown':
+                if (typeof Dashboard !== 'undefined') Dashboard.loadFullBreakdown();
+                break;    
         }
     },
 

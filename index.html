@@ -86,7 +86,7 @@
     <div class="dashboard-section">
         <div class="section-header">
             <span class="section-title">Expense Breakdown</span>
-            <span class="section-link" onclick="App.navigate('categories')">See All</span>
+            <span class="section-link" onclick="App.navigate('breakdown')">See All</span>
         </div>
         <div id="expenseBreakdown"></div>
     </div>
@@ -148,6 +148,16 @@
 
     <div id="reportsContent"></div>
 </div>
+            <!-- ==================== EXPENSE BREAKDOWN (FULL) ==================== -->
+            <div id="breakdownPage" class="page">
+                <div class="page-header">
+                    <h1>Expense Breakdown</h1>
+                    <button class="btn-icon" onclick="App.navigate('dashboard')">✕</button>
+                </div>
+                <div class="breakdown-month" id="breakdownMonth">April 2026</div>
+                <div class="breakdown-total-bar" id="breakdownTotalBar"></div>
+                <div id="fullBreakdownList"></div>
+            </div>
 
             <!-- ==================== SETTINGS ==================== -->
             <section id="pageSettings" class="page">

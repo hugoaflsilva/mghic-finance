@@ -201,5 +201,96 @@ const Dashboard = {
                 </div>
             `;
         }).join('');
+    },
+
+    // Full expense breakdown page
+    async loadFullBreakdown() {
+        const transactions = await DB.getAll('transactions');
+        const categories = await DB.getAll('categories');
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const monthExpenses = transactions.filter(t => {
+            const d = new Date(t.date);
+            return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+
+        const totalExpenses = monthExpenses.reduce((sum, t) => sum + t.amount, 0);
+
+        // Set month label
+        const monthLabel = document.getElementById('breakdownMonth');
+        if (monthLabel) monthLabel.textContent = App.getCurrentMonthLabel();
+
+        // Total bar
+        const totalBar = document.getElementById('breakdownTotalBar');
+        if (totalBar) {
+            totalBar.innerHTML = `
+                <div class="breakdown-total-card">
+                    <span class="breakdown-total-label">Total Expenses</span>
+                    <span class="breakdown-total-amount">${DB.formatCurrency(totalExpenses)}</span>
+                </div>
+            `;
+        }
+
+        // Group by category
+        const byCategory = {};
+        monthExpenses.forEach(t => {
+            const catId = t.categoryId || 'uncategorized';
+            if (!byCategory[catId]) {
+                byCategory[catId] = { amount: 0, count: 0 };
+            }
+            byCategory[catId].amount += t.amount;
+            byCategory[catId].count += 1;
+        });
+
+        // Sort by amount descending
+        const sorted = Object.entries(byCategory)
+            .sort(([, a], [, b]) => b.amount - a.amount);
+
+        const container = document.getElementById('fullBreakdownList');
+        if (!container) return;
+
+        if (sorted.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-state-icon">📊</span>
+                    <p>No expenses this month</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = sorted.map(([catId, data]) => {
+            const cat = categories.find(c => c.id === parseInt(catId)) || {
+                icon: '📦', name: 'Uncategorized', color: '#7F8C8D'
+            };
+            const percentage = totalExpenses > 0 
+                ? ((data.amount / totalExpenses) * 100).toFixed(1) 
+                : 0;
+
+            return `
+                <div class="breakdown-full-card">
+                    <div class="breakdown-full-header">
+                        <div class="breakdown-full-left">
+                            <div class="breakdown-full-icon" style="background: ${cat.color}20; color: ${cat.color}">
+                                ${cat.icon}
+                            </div>
+                            <div class="breakdown-full-info">
+                                <span class="breakdown-full-name">${cat.name}</span>
+                                <span class="breakdown-full-count">${data.count} transaction${data.count !== 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
+                        <div class="breakdown-full-right">
+                            <span class="breakdown-full-amount">${DB.formatCurrency(data.amount)}</span>
+                            <span class="breakdown-full-percent">${percentage}%</span>
+                        </div>
+                    </div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-bar-fill" style="width: ${percentage}%; background: ${cat.color}"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 };
