@@ -19,7 +19,7 @@ const Dashboard = {
             return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
 
-        // Monthly totals
+        // Monthly totals (exclude savings-opening from everything)
         const monthIncome = monthTransactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
@@ -28,16 +28,17 @@ const Dashboard = {
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
 
-         const monthSavings = monthTransactions
+        const monthSavingsDeposits = monthTransactions
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const monthWithdrawals = monthTransactions
+        const monthSavingsWithdrawals = monthTransactions
             .filter(t => t.type === 'savings-withdrawal')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        // TOTAL balance = ALL transactions ever
+        const monthSavingsNet = monthSavingsDeposits - monthSavingsWithdrawals;
 
+        // TOTAL balance = ALL transactions ever (EXCLUDING savings-opening)
         const totalIncome = transactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
@@ -46,22 +47,23 @@ const Dashboard = {
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const totalSavings = transactions
+        const totalSavingsDeposits = transactions
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const totalWithdrawals = transactions
+        const totalSavingsWithdrawals = transactions
             .filter(t => t.type === 'savings-withdrawal')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const availableBalance = totalIncome - totalExpenses - totalSavings + totalWithdrawals;
+        // savings-opening does NOT affect available balance!
+        const availableBalance = totalIncome - totalExpenses - totalSavingsDeposits + totalSavingsWithdrawals;
 
         // Update dashboard cards
         document.getElementById('dashMonth').textContent = App.getCurrentMonthLabel();
         document.getElementById('dashAvailableBalance').textContent = DB.formatCurrency(availableBalance);
         document.getElementById('dashTotalIncome').textContent = DB.formatCurrency(monthIncome);
         document.getElementById('dashTotalExpenses').textContent = DB.formatCurrency(monthExpenses);
-        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(monthSavings - monthWithdrawals);
+        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(monthSavingsNet);
 
         // Color the balance
         const balanceEl = document.getElementById('dashAvailableBalance');
@@ -69,10 +71,8 @@ const Dashboard = {
             balanceEl.style.color = availableBalance >= 0 ? '#FFFFFF' : 'var(--danger)';
         }
 
-        // Render expense breakdown (current month)
+        // Render sections
         this.renderExpenseBreakdown(monthTransactions, categories);
-
-        // Render recent transactions (all time, with goals)
         this.renderRecentTransactions(transactions, categories, goals);
     },
 
@@ -156,15 +156,14 @@ const Dashboard = {
 
         container.innerHTML = recent.map(t => {
             let icon, name, color;
+            const isSavingsType = ['savings', 'savings-opening', 'savings-withdrawal'].includes(t.type);
 
-            if (t.type === 'savings') {
-                // Look up the savings goal
+            if (isSavingsType) {
                 const goal = goals.find(g => g.id === t.savingsGoalId);
                 icon = goal ? goal.icon : '🎯';
                 name = goal ? goal.name : 'Savings';
                 color = goal ? goal.color : '#6C2DC7';
             } else {
-                // Look up the category
                 const cat = categories.find(c => c.id === t.categoryId) || {
                     icon: '📦', name: 'Uncategorized', color: '#7F8C8D'
                 };
@@ -173,14 +172,24 @@ const Dashboard = {
                 color = cat.color;
             }
 
-            const sign = t.type === 'income' ? '+' : '-';
-            const amountClass = t.type === 'income' ? 'positive' : 'negative';
+            let sign, amountClass;
+            if (t.type === 'income' || t.type === 'savings-withdrawal') {
+                sign = '+';
+                amountClass = 'positive';
+            } else {
+                sign = '-';
+                amountClass = 'negative';
+            }
+
+            // Special label for savings-opening
+            const typeLabel = t.type === 'savings-opening' ? '🏦 Opening' 
+                            : t.type === 'savings-withdrawal' ? '💸 Withdrawal'
+                            : t.type === 'savings' ? '🎯 Deposit'
+                            : '';
+
             const dateStr = new Date(t.date).toLocaleDateString('en-GB', { 
                 day: 'numeric', month: 'short' 
             });
-
-            // Show type badge for savings
-            const typeBadge = t.type === 'savings' ? '🎯 ' : '';
 
             return `
                 <div class="transaction-card" onclick="Transactions.showEdit(${t.id})">
@@ -190,7 +199,7 @@ const Dashboard = {
                         </div>
                         <div class="transaction-info">
                             <span class="transaction-name">${t.description || name}</span>
-                            <span class="transaction-category">${dateStr} · ${typeBadge}${name}</span>
+                            <span class="transaction-category">${dateStr} · ${typeLabel || name}</span>
                         </div>
                     </div>
                     <div class="transaction-right">

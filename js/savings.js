@@ -26,13 +26,13 @@ const Savings = {
             return;
         }
 
-        // Calculate saved amount for each goal
         list.innerHTML = goals.map(goal => {
-            // Deposits = savings type, Withdrawals = savings-withdrawal type
+            // Deposits = savings + savings-opening
             const deposits = transactions
-                .filter(t => t.type === 'savings' && t.savingsGoalId === goal.id)
+                .filter(t => (t.type === 'savings' || t.type === 'savings-opening') && t.savingsGoalId === goal.id)
                 .reduce((sum, t) => sum + t.amount, 0);
             
+            // Withdrawals
             const withdrawals = transactions
                 .filter(t => t.type === 'savings-withdrawal' && t.savingsGoalId === goal.id)
                 .reduce((sum, t) => sum + t.amount, 0);
@@ -285,25 +285,26 @@ const Savings = {
                 App.showToast('Goal updated! ✅');
             } else {
                 savedGoal = await DB.add('savingsGoals', data);
-                App.showToast('Goal created! 🎯');
 
-                // If existing goal with money already saved, create opening transaction
+                // If existing goal with money already saved
                 if (isExisting && existingAmount > 0) {
                     const today = new Date().toISOString().split('T')[0];
                     await DB.add('transactions', {
                         amount: existingAmount,
-                        type: 'savings',
+                        type: 'savings-opening',
                         categoryId: null,
                         savingsGoalId: savedGoal.id,
                         description: `🎯 Existing balance — ${name}`,
                         date: today,
-                        notes: 'Pre-existing savings set during goal creation',
+                        notes: 'Pre-existing savings — does not affect available balance',
                         isRecurring: false,
                         isOpeningBalance: true,
                         createdAt: new Date().toISOString()
                     });
 
                     App.showToast(`Goal created with ${DB.formatCurrency(existingAmount)} already saved! 🎯`);
+                } else {
+                    App.showToast('Goal created! 🎯');
                 }
             }
 

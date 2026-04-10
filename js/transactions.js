@@ -60,8 +60,9 @@ const Transactions = {
                     </div>
                     ${txs.map(t => {
                         let icon, name, color;
+                        const isSavingsType = ['savings', 'savings-opening', 'savings-withdrawal'].includes(t.type);
                         
-                        if (t.type === 'savings') {
+                        if (isSavingsType) {
                             const goal = goals.find(g => g.id === t.savingsGoalId);
                             icon = goal ? goal.icon : '🎯';
                             name = goal ? goal.name : 'Savings';
@@ -75,8 +76,19 @@ const Transactions = {
                             color = cat.color;
                         }
 
-                        const sign = t.type === 'income' ? '+' : '-';
-                        const amountClass = t.type === 'income' ? 'positive' : 'negative';
+                        let sign, amountClass;
+                        if (t.type === 'income' || t.type === 'savings-withdrawal') {
+                            sign = '+';
+                            amountClass = 'positive';
+                        } else {
+                            sign = '-';
+                            amountClass = 'negative';
+                        }
+
+                        const typeLabel = t.type === 'savings-opening' ? ' · 🏦 Opening' 
+                                        : t.type === 'savings-withdrawal' ? ' · 💸 Withdrawal'
+                                        : t.type === 'savings' ? ' · 🎯 Deposit'
+                                        : '';
                         
                         return `
                             <div class="transaction-card" onclick="Transactions.showEdit(${t.id})">
@@ -86,7 +98,7 @@ const Transactions = {
                                     </div>
                                     <div class="transaction-info">
                                         <span class="transaction-name">${t.description || name}</span>
-                                        <span class="transaction-category">${t.type === 'savings' ? '🎯 ' : ''}${name}</span>
+                                        <span class="transaction-category">${name}${typeLabel}</span>
                                     </div>
                                 </div>
                                 <div class="transaction-right">
