@@ -11,6 +11,7 @@ const Transactions = {
     async load() {
         const transactions = await DB.getAll('transactions');
         const categories = await DB.getAll('categories');
+        const goals = await DB.getAll('savingsGoals');
         
         // Sort by date descending
         transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -58,21 +59,34 @@ const Transactions = {
                         </span>
                     </div>
                     ${txs.map(t => {
-                        const cat = categories.find(c => c.id === t.categoryId) || { 
-                            icon: '📦', name: 'Uncategorized', color: '#7F8C8D' 
-                        };
+                        let icon, name, color;
+                        
+                        if (t.type === 'savings') {
+                            const goal = goals.find(g => g.id === t.savingsGoalId);
+                            icon = goal ? goal.icon : '🎯';
+                            name = goal ? goal.name : 'Savings';
+                            color = goal ? goal.color : '#6C2DC7';
+                        } else {
+                            const cat = categories.find(c => c.id === t.categoryId) || { 
+                                icon: '📦', name: 'Uncategorized', color: '#7F8C8D' 
+                            };
+                            icon = cat.icon;
+                            name = cat.name;
+                            color = cat.color;
+                        }
+
                         const sign = t.type === 'income' ? '+' : '-';
                         const amountClass = t.type === 'income' ? 'positive' : 'negative';
                         
                         return `
                             <div class="transaction-card" onclick="Transactions.showEdit(${t.id})">
                                 <div class="transaction-left">
-                                    <div class="transaction-icon" style="background: ${cat.color}20; color: ${cat.color}">
-                                        ${cat.icon}
+                                    <div class="transaction-icon" style="background: ${color}20; color: ${color}">
+                                        ${icon}
                                     </div>
                                     <div class="transaction-info">
-                                        <span class="transaction-name">${t.description || cat.name}</span>
-                                        <span class="transaction-category">${cat.name}</span>
+                                        <span class="transaction-name">${t.description || name}</span>
+                                        <span class="transaction-category">${t.type === 'savings' ? '🎯 ' : ''}${name}</span>
                                     </div>
                                 </div>
                                 <div class="transaction-right">
@@ -115,6 +129,16 @@ const Transactions = {
             `).join('');
     },
 
+    // Load savings goal options
+    async loadGoalOptions() {
+        const goals = await DB.getAll('savingsGoals');
+        const select = document.getElementById('txSavingsGoal');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Select goal...</option>' +
+            goals.map(g => `<option value="${g.id}">${g.icon} ${g.name}</option>`).join('');
+    },
+
     // Set transaction type
     setType(type, btn) {
         this.selectedType = type;
@@ -127,12 +151,17 @@ const Transactions = {
         // Show/hide savings goal selector
         const savingsGroup = document.getElementById('savingsGoalGroup');
         const invoiceGroup = document.getElementById('invoiceGroup');
+        const categoryGroup = document.getElementById('txCategory')?.closest('.form-group');
         
-        if (savingsGroup) savingsGroup.style.display = type === 'savings' ? 'block' : 'none';
-        if (invoiceGroup) invoiceGroup.style.display = type === 'savings' ? 'none' : 'block';
-
-        // Load categories for selected type
-        if (type !== 'savings') {
+        if (type === 'savings') {
+            if (savingsGroup) savingsGroup.style.display = 'block';
+            if (invoiceGroup) invoiceGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            this.loadGoalOptions();
+        } else {
+            if (savingsGroup) savingsGroup.style.display = 'none';
+            if (invoiceGroup) invoiceGroup.style.display = 'block';
+            if (categoryGroup) categoryGroup.style.display = 'block';
             this.loadCategoryOptions(type);
         }
     },
@@ -150,17 +179,27 @@ const Transactions = {
         document.getElementById('txRecurring').checked = false;
         document.getElementById('txType').value = type;
         document.getElementById('deleteTransactionBtn').style.display = 'none';
+        document.getElementById('invoicePreview').innerHTML = '';
 
+        // Reset type buttons
         document.querySelectorAll('#modalTransaction .type-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.type === type);
         });
 
+        // Show/hide sections based on type
         const savingsGroup = document.getElementById('savingsGoalGroup');
         const invoiceGroup = document.getElementById('invoiceGroup');
-        if (savingsGroup) savingsGroup.style.display = type === 'savings' ? 'block' : 'none';
-        if (invoiceGroup) invoiceGroup.style.display = type === 'savings' ? 'none' : 'block';
+        const categoryGroup = document.getElementById('txCategory')?.closest('.form-group');
 
-        if (type !== 'savings') {
+        if (type === 'savings') {
+            if (savingsGroup) savingsGroup.style.display = 'block';
+            if (invoiceGroup) invoiceGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            this.loadGoalOptions();
+        } else {
+            if (savingsGroup) savingsGroup.style.display = 'none';
+            if (invoiceGroup) invoiceGroup.style.display = 'block';
+            if (categoryGroup) categoryGroup.style.display = 'block';
             this.loadCategoryOptions(type);
         }
 
@@ -184,16 +223,26 @@ const Transactions = {
         document.getElementById('txType').value = tx.type;
         document.getElementById('deleteTransactionBtn').style.display = 'block';
 
+        // Set type buttons
         document.querySelectorAll('#modalTransaction .type-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.type === tx.type);
         });
 
+        // Show/hide sections
         const savingsGroup = document.getElementById('savingsGoalGroup');
         const invoiceGroup = document.getElementById('invoiceGroup');
-        if (savingsGroup) savingsGroup.style.display = tx.type === 'savings' ? 'block' : 'none';
-        if (invoiceGroup) invoiceGroup.style.display = tx.type === 'savings' ? 'none' : 'block';
+        const categoryGroup = document.getElementById('txCategory')?.closest('.form-group');
 
-        if (tx.type !== 'savings') {
+        if (tx.type === 'savings') {
+            if (savingsGroup) savingsGroup.style.display = 'block';
+            if (invoiceGroup) invoiceGroup.style.display = 'none';
+            if (categoryGroup) categoryGroup.style.display = 'none';
+            await this.loadGoalOptions();
+            document.getElementById('txSavingsGoal').value = tx.savingsGoalId || '';
+        } else {
+            if (savingsGroup) savingsGroup.style.display = 'none';
+            if (invoiceGroup) invoiceGroup.style.display = 'block';
+            if (categoryGroup) categoryGroup.style.display = 'block';
             await this.loadCategoryOptions(tx.type);
             document.getElementById('txCategory').value = tx.categoryId || '';
         }
@@ -208,6 +257,7 @@ const Transactions = {
         const amount = parseFloat(document.getElementById('txAmount').value);
         const type = document.getElementById('txType').value;
         const categoryId = parseInt(document.getElementById('txCategory').value) || null;
+        const savingsGoalId = parseInt(document.getElementById('txSavingsGoal').value) || null;
         const description = document.getElementById('txDescription').value.trim();
         const date = document.getElementById('txDate').value;
         const notes = document.getElementById('txNotes').value.trim();
@@ -222,6 +272,10 @@ const Transactions = {
             App.showToast('Please select a date', 'error');
             return;
         }
+        if (type === 'savings' && !savingsGoalId) {
+            App.showToast('Please select a savings goal', 'error');
+            return;
+        }
         if (type !== 'savings' && !categoryId) {
             App.showToast('Please select a category', 'error');
             return;
@@ -230,7 +284,8 @@ const Transactions = {
         const data = {
             amount,
             type,
-            categoryId,
+            categoryId: type === 'savings' ? null : categoryId,
+            savingsGoalId: type === 'savings' ? savingsGoalId : null,
             description,
             date,
             notes,
@@ -244,15 +299,14 @@ const Transactions = {
                 App.showToast('Transaction updated! ✅');
             } else {
                 await DB.add('transactions', data);
-                App.showToast('Transaction added! 🎉');
+                const typeEmoji = type === 'income' ? '💰' : type === 'savings' ? '🎯' : '💸';
+                App.showToast(`Transaction added! ${typeEmoji}`);
             }
 
             App.closeModal('modalTransaction');
             
             // Refresh current page
-            const currentPage = document.querySelector('.page.active')?.id;
-            if (currentPage === 'dashboardPage') Dashboard.load();
-            else if (currentPage === 'transactionsPage') this.load();
+            this.refreshCurrentPage();
         } catch (error) {
             App.showToast('Error saving transaction', 'error');
             console.error(error);
@@ -269,13 +323,18 @@ const Transactions = {
             await DB.delete('transactions', this.editingId);
             App.showToast('Transaction deleted 🗑️');
             App.closeModal('modalTransaction');
-            
-            const currentPage = document.querySelector('.page.active')?.id;
-            if (currentPage === 'dashboardPage') Dashboard.load();
-            else if (currentPage === 'transactionsPage') this.load();
+            this.refreshCurrentPage();
         } catch (error) {
             App.showToast('Error deleting transaction', 'error');
             console.error(error);
         }
+    },
+
+    // Refresh whatever page is active
+    refreshCurrentPage() {
+        const currentPage = document.querySelector('.page.active')?.id;
+        if (currentPage === 'dashboardPage') Dashboard.load();
+        else if (currentPage === 'transactionsPage') this.load();
+        else if (currentPage === 'savingsPage') Savings.load();
     }
 };
