@@ -38,9 +38,9 @@ const Setup = {
 
         const bankBalance = parseFloat(document.getElementById('setupBankBalance').value);
 
-        if (isNaN(bankBalance) || bankBalance < 0) {
+        if (isNaN(bankBalance)) {
             App.showToast('Please enter a valid amount', 'error');
-            return;
+                return;
         }
 
         const today = new Date().toISOString().split('T')[0];
