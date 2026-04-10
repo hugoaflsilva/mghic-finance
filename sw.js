@@ -1,58 +1,72 @@
-const CACHE_NAME = 'mghic-finance-v1';
-const ASSETS = [
+/* ============================================
+   MGHIC FinanceApp - Service Worker
+   Smart caching with auto-update
+   ============================================ */
+
+const CACHE_VERSION = 'mghic-v2';
+
+const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/css/styles.css',
-    '/js/app.js',
     '/js/db.js',
+    '/js/app.js',
     '/js/categories.js',
     '/js/transactions.js',
     '/js/savings.js',
     '/js/invoices.js',
     '/js/dashboard.js',
     '/js/reports.js',
-    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
+    '/manifest.json'
 ];
 
-// Install - cache assets
-self.addEventListener('install', event => {
+// Install - cache core assets
+self.addEventListener('install', (event) => {
+    console.log('🔧 SW: Installing', CACHE_VERSION);
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_VERSION)
+            .then(cache => cache.addAll(ASSETS_TO_CACHE))
+            .then(() => self.skipWaiting()) // Force activate immediately
     );
 });
 
 // Activate - clean old caches
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
+    console.log('✅ SW: Activating', CACHE_VERSION);
     event.waitUntil(
-        caches.keys().then(keys => 
-            Promise.all(
-                keys.filter(key => key !== CACHE_NAME)
-                    .map(key => caches.delete(key))
-            )
-        ).then(() => self.clients.claim())
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys.filter(key => key !== CACHE_VERSION)
+                    .map(key => {
+                        console.log('🗑️ SW: Deleting old cache', key);
+                        return caches.delete(key);
+                    })
+            );
+        }).then(() => self.clients.claim()) // Take control immediately
     );
 });
 
-// Fetch - cache first, then network
-self.addEventListener('fetch', event => {
+// Fetch - Network First strategy (always get latest)
+self.addEventListener('fetch', (event) => {
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') return;
+
+    // Skip external URLs (CDNs etc)
+    if (!event.request.url.startsWith(self.location.origin)) return;
+
     event.respondWith(
-        caches.match(event.request)
-            .then(cached => cached || fetch(event.request)
-                .then(response => {
-                    if (response.status === 200) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(event.request, clone));
-                    }
-                    return response;
-                })
-            )
+        fetch(event.request)
+            .then(response => {
+                // Got network response - cache it and return
+                const clone = response.clone();
+                caches.open(CACHE_VERSION).then(cache => {
+                    cache.put(event.request, clone);
+                });
+                return response;
+            })
             .catch(() => {
-                if (event.request.destination === 'document') {
-                    return caches.match('/index.html');
-                }
+                // Network failed - try cache (offline mode)
+                return caches.match(event.request);
             })
     );
 });
