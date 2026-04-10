@@ -7,6 +7,7 @@ const Dashboard = {
     async load() {
         const transactions = await DB.getAll('transactions');
         const categories = await DB.getAll('categories');
+        const goals = await DB.getAll('savingsGoals');
 
         // Current month filter
         const now = new Date();
@@ -31,7 +32,7 @@ const Dashboard = {
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        // TOTAL balance = ALL transactions ever (not just this month)
+        // TOTAL balance = ALL transactions ever
         const totalIncome = transactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
@@ -62,8 +63,8 @@ const Dashboard = {
         // Render expense breakdown (current month)
         this.renderExpenseBreakdown(monthTransactions, categories);
 
-        // Render recent transactions (all time)
-        this.renderRecentTransactions(transactions, categories);
+        // Render recent transactions (all time, with goals)
+        this.renderRecentTransactions(transactions, categories, goals);
     },
 
     // Expense breakdown by category
@@ -127,8 +128,8 @@ const Dashboard = {
         container.innerHTML = html;
     },
 
-    // Recent transactions
-    renderRecentTransactions(transactions, categories) {
+    // Recent transactions — handles both categories AND savings goals
+    renderRecentTransactions(transactions, categories, goals) {
         const container = document.getElementById('recentTransactions');
         if (!container) return;
 
@@ -145,24 +146,42 @@ const Dashboard = {
         }
 
         container.innerHTML = recent.map(t => {
-            const cat = categories.find(c => c.id === t.categoryId) || {
-                icon: '📦', name: 'Uncategorized', color: '#7F8C8D'
-            };
+            let icon, name, color;
+
+            if (t.type === 'savings') {
+                // Look up the savings goal
+                const goal = goals.find(g => g.id === t.savingsGoalId);
+                icon = goal ? goal.icon : '🎯';
+                name = goal ? goal.name : 'Savings';
+                color = goal ? goal.color : '#6C2DC7';
+            } else {
+                // Look up the category
+                const cat = categories.find(c => c.id === t.categoryId) || {
+                    icon: '📦', name: 'Uncategorized', color: '#7F8C8D'
+                };
+                icon = cat.icon;
+                name = cat.name;
+                color = cat.color;
+            }
+
             const sign = t.type === 'income' ? '+' : '-';
             const amountClass = t.type === 'income' ? 'positive' : 'negative';
             const dateStr = new Date(t.date).toLocaleDateString('en-GB', { 
                 day: 'numeric', month: 'short' 
             });
 
+            // Show type badge for savings
+            const typeBadge = t.type === 'savings' ? '🎯 ' : '';
+
             return `
                 <div class="transaction-card" onclick="Transactions.showEdit(${t.id})">
                     <div class="transaction-left">
-                        <div class="transaction-icon" style="background: ${cat.color}20; color: ${cat.color}">
-                            ${cat.icon}
+                        <div class="transaction-icon" style="background: ${color}20; color: ${color}">
+                            ${icon}
                         </div>
                         <div class="transaction-info">
-                            <span class="transaction-name">${t.description || cat.name}</span>
-                            <span class="transaction-category">${dateStr} · ${cat.name}</span>
+                            <span class="transaction-name">${t.description || name}</span>
+                            <span class="transaction-category">${dateStr} · ${typeBadge}${name}</span>
                         </div>
                     </div>
                     <div class="transaction-right">
