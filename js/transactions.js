@@ -255,7 +255,7 @@ const Transactions = {
         event.preventDefault();
 
         const amount = parseFloat(document.getElementById('txAmount').value);
-        const type = document.getElementById('txType').value;
+        let type = document.getElementById('txType').value;
         const categoryId = parseInt(document.getElementById('txCategory').value) || null;
         const savingsGoalId = parseInt(document.getElementById('txSavingsGoal').value) || null;
         const description = document.getElementById('txDescription').value.trim();
@@ -272,20 +272,22 @@ const Transactions = {
             App.showToast('Please select a date', 'error');
             return;
         }
-        if (type === 'savings' && !savingsGoalId) {
+        if ((type === 'savings' || type === 'savings-withdrawal') && !savingsGoalId) {
             App.showToast('Please select a savings goal', 'error');
             return;
         }
-        if (type !== 'savings' && !categoryId) {
+        if (type !== 'savings' && type !== 'savings-withdrawal' && !categoryId) {
             App.showToast('Please select a category', 'error');
             return;
         }
 
+        const isSavingsType = type === 'savings' || type === 'savings-withdrawal';
+
         const data = {
             amount,
             type,
-            categoryId: type === 'savings' ? null : categoryId,
-            savingsGoalId: type === 'savings' ? savingsGoalId : null,
+            categoryId: isSavingsType ? null : categoryId,
+            savingsGoalId: isSavingsType ? savingsGoalId : null,
             description,
             date,
             notes,
@@ -299,13 +301,11 @@ const Transactions = {
                 App.showToast('Transaction updated! ✅');
             } else {
                 await DB.add('transactions', data);
-                const typeEmoji = type === 'income' ? '💰' : type === 'savings' ? '🎯' : '💸';
-                App.showToast(`Transaction added! ${typeEmoji}`);
+                const emoji = type === 'income' ? '💰' : type === 'savings' ? '🎯' : type === 'savings-withdrawal' ? '💸' : '💸';
+                App.showToast(`Transaction added! ${emoji}`);
             }
 
             App.closeModal('modalTransaction');
-            
-            // Refresh current page
             this.refreshCurrentPage();
         } catch (error) {
             App.showToast('Error saving transaction', 'error');

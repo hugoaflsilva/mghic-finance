@@ -1,5 +1,5 @@
 // ============================================
-// SAVINGS MODULE (Basic - Phase 2)
+// SAVINGS MODULE
 // ============================================
 
 const Savings = {
@@ -28,17 +28,24 @@ const Savings = {
 
         // Calculate saved amount for each goal
         list.innerHTML = goals.map(goal => {
-            const saved = transactions
+            // Deposits = savings type, Withdrawals = savings-withdrawal type
+            const deposits = transactions
                 .filter(t => t.type === 'savings' && t.savingsGoalId === goal.id)
                 .reduce((sum, t) => sum + t.amount, 0);
+            
+            const withdrawals = transactions
+                .filter(t => t.type === 'savings-withdrawal' && t.savingsGoalId === goal.id)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const saved = deposits - withdrawals;
             
             const percentage = goal.targetAmount > 0 
                 ? Math.min((saved / goal.targetAmount) * 100, 100) 
                 : 0;
 
             return `
-                <div class="savings-card" onclick="Savings.showEditGoal(${goal.id})">
-                    <div class="savings-header">
+                <div class="savings-card">
+                    <div class="savings-header" onclick="Savings.showEditGoal(${goal.id})">
                         <div class="savings-icon" style="background: ${goal.color}20; color: ${goal.color}">
                             ${goal.icon}
                         </div>
@@ -52,14 +59,94 @@ const Savings = {
                     </div>
                     <div class="savings-progress">
                         <div class="savings-progress-bar">
-                            <div class="savings-progress-fill" style="width: ${percentage}%; background: ${goal.color}"></div>
+                            <div class="savings-progress-fill" style="width: ${Math.max(percentage, 0)}%; background: ${goal.color}"></div>
                         </div>
                         <span class="savings-percentage">${percentage.toFixed(1)}%</span>
                     </div>
                     ${goal.deadline ? `<span class="savings-deadline">Deadline: ${new Date(goal.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>` : ''}
+                    <div class="savings-actions">
+                        <button class="btn btn-savings-deposit" onclick="Savings.showDeposit(${goal.id}, '${goal.icon}', '${goal.name}')">
+                            ➕ Deposit
+                        </button>
+                        <button class="btn btn-savings-withdraw" onclick="Savings.showWithdraw(${goal.id}, '${goal.icon}', '${goal.name}', ${saved})">
+                            ➖ Withdraw
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
+    },
+
+    // Quick deposit to a goal
+    showDeposit(goalId, icon, name) {
+        Transactions.editingId = null;
+        Transactions.selectedType = 'savings';
+
+        document.getElementById('modalTransactionTitle').textContent = `Deposit to ${name}`;
+        document.getElementById('txAmount').value = '';
+        document.getElementById('txDescription').value = '';
+        document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('txNotes').value = '';
+        document.getElementById('txRecurring').checked = false;
+        document.getElementById('txType').value = 'savings';
+        document.getElementById('deleteTransactionBtn').style.display = 'none';
+        document.getElementById('invoicePreview').innerHTML = '';
+
+        // Set type buttons
+        document.querySelectorAll('#modalTransaction .type-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.type === 'savings');
+        });
+
+        // Show savings goal, hide category
+        const savingsGroup = document.getElementById('savingsGoalGroup');
+        const invoiceGroup = document.getElementById('invoiceGroup');
+        const categoryGroup = document.getElementById('txCategory')?.closest('.form-group');
+        if (savingsGroup) savingsGroup.style.display = 'block';
+        if (invoiceGroup) invoiceGroup.style.display = 'none';
+        if (categoryGroup) categoryGroup.style.display = 'none';
+
+        // Load goals and pre-select
+        Transactions.loadGoalOptions().then(() => {
+            document.getElementById('txSavingsGoal').value = goalId;
+        });
+
+        App.openModal('modalTransaction');
+    },
+
+    // Withdraw from a goal
+    showWithdraw(goalId, icon, name, currentSaved) {
+        Transactions.editingId = null;
+        Transactions.selectedType = 'savings-withdrawal';
+
+        document.getElementById('modalTransactionTitle').textContent = `Withdraw from ${name}`;
+        document.getElementById('txAmount').value = '';
+        document.getElementById('txDescription').value = '';
+        document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('txNotes').value = '';
+        document.getElementById('txRecurring').checked = false;
+        document.getElementById('txType').value = 'savings-withdrawal';
+        document.getElementById('deleteTransactionBtn').style.display = 'none';
+        document.getElementById('invoicePreview').innerHTML = '';
+
+        // Hide type selector for withdrawals (it's always savings-withdrawal)
+        document.querySelectorAll('#modalTransaction .type-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+
+        // Show savings goal, hide category
+        const savingsGroup = document.getElementById('savingsGoalGroup');
+        const invoiceGroup = document.getElementById('invoiceGroup');
+        const categoryGroup = document.getElementById('txCategory')?.closest('.form-group');
+        if (savingsGroup) savingsGroup.style.display = 'block';
+        if (invoiceGroup) invoiceGroup.style.display = 'none';
+        if (categoryGroup) categoryGroup.style.display = 'none';
+
+        // Load goals and pre-select
+        Transactions.loadGoalOptions().then(() => {
+            document.getElementById('txSavingsGoal').value = goalId;
+        });
+
+        App.openModal('modalTransaction');
     },
 
     showAddGoal() {
@@ -98,7 +185,7 @@ const Savings = {
     },
 
     renderIconPicker() {
-        const icons = ['🎯','🏠','✈️','🚗','💍','🎓','💻','📱','🏖️','💊','👶','🎮','📷','🏋️','🎵'];
+        const icons = ['🎯','🏠','✈️','🚗','💍','🎓','💻','📱','🏖️','💊','👶','🎮','📷','🏋️','🎵','🐶','🏥','👗','🎄','💎'];
         const container = document.getElementById('goalIconPicker');
         if (!container) return;
 

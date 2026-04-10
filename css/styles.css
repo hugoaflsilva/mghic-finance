@@ -1421,3 +1421,43 @@ textarea {
     cursor: pointer;
     font-weight: 600;
 }
+/* Savings Action Buttons */
+.savings-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-savings-deposit {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--success);
+    color: white;
+    transition: transform 0.2s;
+}
+
+.btn-savings-deposit:active {
+    transform: scale(0.97);
+}
+
+.btn-savings-withdraw {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--warning);
+    color: white;
+    transition: transform 0.2s;
+}
+
+.btn-savings-withdraw:active {
+    transform: scale(0.97);
+}

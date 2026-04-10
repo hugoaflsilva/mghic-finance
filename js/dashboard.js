@@ -28,11 +28,16 @@ const Dashboard = {
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const monthSavings = monthTransactions
+         const monthSavings = monthTransactions
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
+        const monthWithdrawals = monthTransactions
+            .filter(t => t.type === 'savings-withdrawal')
+            .reduce((sum, t) => sum + t.amount, 0);
+
         // TOTAL balance = ALL transactions ever
+
         const totalIncome = transactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
@@ -45,14 +50,18 @@ const Dashboard = {
             .filter(t => t.type === 'savings')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const availableBalance = totalIncome - totalExpenses - totalSavings;
+        const totalWithdrawals = transactions
+            .filter(t => t.type === 'savings-withdrawal')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const availableBalance = totalIncome - totalExpenses - totalSavings + totalWithdrawals;
 
         // Update dashboard cards
         document.getElementById('dashMonth').textContent = App.getCurrentMonthLabel();
         document.getElementById('dashAvailableBalance').textContent = DB.formatCurrency(availableBalance);
         document.getElementById('dashTotalIncome').textContent = DB.formatCurrency(monthIncome);
         document.getElementById('dashTotalExpenses').textContent = DB.formatCurrency(monthExpenses);
-        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(monthSavings);
+        document.getElementById('dashTotalSavings').textContent = DB.formatCurrency(monthSavings - monthWithdrawals);
 
         // Color the balance
         const balanceEl = document.getElementById('dashAvailableBalance');
